@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void succeed(char *message) { printf("%s\n", message); }
+void succeed(const char *message) { printf("%s\n", message); }
 
-void fail(char *message) {
+void fail(const char *message) {
     fprintf(stderr, "%s\n", message);
     exit(1);
 }

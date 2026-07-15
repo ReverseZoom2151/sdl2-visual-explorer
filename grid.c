@@ -1,89 +1,88 @@
 #include "grid.h"
-#include "direction.h"
+
 #include "base.h"
+#include "direction.h"
+#include "entity.h"
+
+#include <stdint.h>
 #include <stdlib.h>
-#include <assert.h>
 
 struct grid {
-    int width, height;
+    int width;
+    int height;
     entity ***cells;
 };
 
-static void checkBounds(grid *g, int x, int y) {
-    if (x < 0 || x >= g->width)
-        fail("x out of bounds");
-    if (y < 0 || y >= g->height)
-        fail("y out of bounds");
+static void checkBounds(const grid *board, int x, int y) {
+    if (!gridContains(board, x, y))
+        fail("grid coordinates out of bounds");
 }
 
 grid *newGrid(int width, int height) {
-    grid *g = malloc(sizeof(grid));
-    g->width = width;
-    g->height = height;
-    g->cells = malloc(width * sizeof(void *));
-    for (int x = 0; x < width; x++) {
-        g->cells[x] = malloc(height * sizeof(void *));
+    if (width <= 0 || height <= 0)
+        return NULL;
+    if ((size_t)width > SIZE_MAX / sizeof(entity **))
+        return NULL;
+
+    grid *board = calloc(1, sizeof(*board));
+    if (board == NULL)
+        return NULL;
+    board->width = width;
+    board->height = height;
+    board->cells = calloc((size_t)width, sizeof(*board->cells));
+    if (board->cells == NULL) {
+        free(board);
+        return NULL;
     }
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            g->cells[x][y] = NULL;
+
+    for (int x = 0; x < width; ++x) {
+        if ((size_t)height > SIZE_MAX / sizeof(*board->cells[x])) {
+            freeGrid(board);
+            return NULL;
+        }
+        board->cells[x] = calloc((size_t)height, sizeof(*board->cells[x]));
+        if (board->cells[x] == NULL) {
+            freeGrid(board);
+            return NULL;
         }
     }
-    return g;
+    return board;
 }
 
-void freeGrid(grid *g) {
-    for (int x = 0; x < g->width; x++) {
-        for (int y = 0; y < g->height; y++)
-            if (g->cells[x][y] != NULL)
-                free(g->cells[x][y]);
-        free(g->cells[x]);
+void freeGrid(grid *board) {
+    if (board == NULL)
+        return;
+    for (int x = 0; x < board->width; ++x) {
+        for (int y = 0; y < board->height; ++y)
+            freeEntity(board->cells[x][y]);
+        free(board->cells[x]);
     }
-    free(g->cells);
-    free(g);
+    free(board->cells);
+    free(board);
 }
 
-entity *getCell(grid *g, int x, int y) {
-    checkBounds(g, x, y);
-    return g->cells[x][y];
+int gridWidth(const grid *board) { return board == NULL ? 0 : board->width; }
+
+int gridHeight(const grid *board) { return board == NULL ? 0 : board->height; }
+
+bool gridContains(const grid *board, int x, int y) {
+    return board != NULL && x >= 0 && x < board->width && y >= 0 && y < board->height;
 }
 
-void setCell(grid *g, int x, int y, entity *e) {
-    checkBounds(g, x, y);
-    g->cells[x][y] = e;
+entity *getCell(grid *board, int x, int y) {
+    checkBounds(board, x, y);
+    return board->cells[x][y];
 }
 
-void *nextCell(grid *g, int x, int y, direction d) {
-    return getCell(g, x + deltaX(d), y + deltaY(d));
+entity *tryGetCell(grid *board, int x, int y) {
+    return gridContains(board, x, y) ? board->cells[x][y] : NULL;
 }
 
-#ifdef gridTest
-
-struct entity {
-    char kind;
-};
-typedef struct entity entity;
-
-static entity *newEntity(char k) {
-    entity *e = malloc(sizeof(entity));
-    e->kind = k;
-    return e;
+void setCell(grid *board, int x, int y, entity *value) {
+    checkBounds(board, x, y);
+    board->cells[x][y] = value;
 }
 
-int main() {
-    grid *g = newGrid(3, 3);
-    entity *player = newEntity('@');
-    entity *space = newEntity('.');
-    setCell(g, 1, 1, player);
-    setCell(g, 2, 1, space);
-    assert(getCell(g, 1, 1) == player);
-    entity *next = nextCell(g, 1, 1, EAST);
-    assert(next == space);
-    free(player);
-    free(space);
-    freeGrid(g);
-    succeed("Grid module OK");
-    return 0;
+entity *nextCell(grid *board, int x, int y, direction value) {
+    return tryGetCell(board, x + deltaX(value), y + deltaY(value));
 }
-
-#endif

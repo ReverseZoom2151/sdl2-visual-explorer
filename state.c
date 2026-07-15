@@ -24,7 +24,10 @@ void addStar(state *s) { s->stars++; }
 
 int getStars(state *s) { return s->stars; }
 
-void findStar(state *s) { --s->stars; }
+void findStar(state *s) {
+    if (s->stars > 0)
+        --s->stars;
+}
 
 bool ended(state *s) { return s->stars == 0; }
 

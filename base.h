@@ -1,2 +1,2 @@
-void succeed(char *message);
-void fail(char *message);
+void succeed(const char *message);
+void fail(const char *message);

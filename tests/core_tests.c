@@ -11,6 +11,19 @@ static void test_directions(void) {
     assert(deltaX(SouthWest) == -1 && deltaY(SouthWest) == 1);
 }
 
+static void test_grid_rejects_invalid_dimensions_and_bounds(void) {
+    assert(newGrid(0, 3) == NULL);
+    assert(newGrid(3, 0) == NULL);
+
+    grid *board = newGrid(2, 2);
+    assert(board != NULL);
+    assert(gridWidth(board) == 2 && gridHeight(board) == 2);
+    assert(gridContains(board, 1, 1));
+    assert(!gridContains(board, -1, 0));
+    assert(tryGetCell(board, 2, 1) == NULL);
+    freeGrid(board);
+}
+
 static void test_player_collects_star(void) {
     state *game = newState();
     grid *board = newGrid(3, 3);
@@ -35,12 +48,16 @@ static void test_player_collects_star(void) {
     assert(getKind(getCell(board, 2, 1)) == Player);
     assert(getKind(getCell(board, 1, 1)) == Blank);
 
+    act(player, South);
+    assert(getKind(getCell(board, 2, 1)) == Player);
+
     freeState(game);
     freeGrid(board);
 }
 
 int main(void) {
     test_directions();
+    test_grid_rejects_invalid_dimensions_and_bounds();
     test_player_collects_star();
     puts("emerald core tests passed");
     return 0;

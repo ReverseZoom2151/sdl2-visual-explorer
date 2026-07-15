@@ -1,8 +1,11 @@
 #include "action.h"
 #include "base.h"
 #include <assert.h>
+#include <stddef.h>
 
 void wake(entity *e) {
+    if (e == NULL)
+        return;
     state *s = getState(e);
     kind k = getKind(e);
     if (k == Player)
@@ -12,6 +15,8 @@ void wake(entity *e) {
 }
 
 void die(entity *e) {
+    if (e == NULL)
+        return;
     state *s = getState(e);
     kind k = getKind(e);
     if (k == Star)
@@ -20,9 +25,13 @@ void die(entity *e) {
 }
 
 void act(entity *e, direction d) {
+    if (e == NULL)
+        return;
     kind k = getKind(e);
     if (k == Player) {
         entity *target = getNext(e, d);
+        if (target == NULL)
+            return;
         kind tk = getKind(target);
         if (tk == Star)
             die(target);
