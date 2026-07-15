@@ -1,7 +1,5 @@
-#include "emerald/base.h"
 #include "emerald/state.h"
 #include <stdlib.h>
-#include <assert.h>
 
 struct state {
     entity *player;
@@ -10,6 +8,8 @@ struct state {
 
 state *newState() {
     state *s = malloc(sizeof(state));
+    if (s == NULL)
+        return NULL;
     *s = (struct state){NULL, 0};
     return s;
 }
@@ -29,19 +29,4 @@ void findStar(state *s) {
         --s->stars;
 }
 
-bool ended(state *s) { return s->stars == 0; }
-
-#ifdef stateTest
-
-int main() {
-    state *s = newState();
-    addStar(s);
-    assert(getStars(s) == 1);
-    findStar(s);
-    assert(getStars(s) == 0);
-    freeState(s);
-    succeed("State module OK");
-    return 0;
-}
-
-#endif
+bool ended(state *s) { return s == NULL || s->stars == 0; }

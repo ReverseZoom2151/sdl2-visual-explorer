@@ -1,7 +1,5 @@
 #include "emerald/direction.h"
 #include "emerald/base.h"
-#include <stdbool.h>
-#include <assert.h>
 
 int deltaX(direction d) {
     switch (d) {
@@ -42,16 +40,3 @@ int deltaY(direction d) {
         return 0;
     }
 }
-
-#ifdef directionTest
-
-static bool check(int d, int dx, int dy) { return deltaX(d) == dx && deltaY(d) == dy; }
-
-int main() {
-    assert(check(North, 0, -1));
-    assert(check(East, 1, 0));
-    assert(check(NorthEast, 1, -1));
-    succeed("Direction module OK");
-}
-
-#endif

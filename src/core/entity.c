@@ -1,7 +1,5 @@
 #include "emerald/entity.h"
-#include "emerald/base.h"
 #include <stdlib.h>
-#include <assert.h>
 
 struct entity {
     kind k;
@@ -46,36 +44,3 @@ void move(entity *e, entity *target) {
 }
 
 void mutate(entity *e, kind newKind) { e->k = newKind; }
-
-#ifdef entityTest
-
-static grid *setup() {
-    state *s = newState();
-    grid *g = newGrid(3, 3);
-    kind *level[] = {"...", ".@.", "..."};
-    for (int x = 0; x < 3; x++) {
-        for (int y = 0; y < 3; y++) {
-            newEntity(s, g, x, y, level[y][x]);
-        }
-    }
-    return g;
-}
-
-static void testMove() {
-    grid *g = setup();
-    entity *player = getCell(g, 1, 1);
-    assert(getKind(player) == '@');
-    entity *space = getCell(g, 2, 1);
-    assert(getKind(space) == '.');
-    move(player, space);
-    assert(getCell(g, 1, 1) == space);
-    assert(getCell(g, 2, 1) == player);
-}
-
-int main() {
-    testMove();
-    succeed("Entity module OK");
-    return 0;
-}
-
-#endif

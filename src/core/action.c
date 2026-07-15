@@ -1,6 +1,4 @@
 #include "emerald/action.h"
-#include "emerald/base.h"
-#include <assert.h>
 #include <stddef.h>
 
 void wake(entity *e) {
@@ -39,40 +37,3 @@ void act(entity *e, direction d) {
             move(e, target);
     }
 }
-
-#ifdef actionTest
-
-static grid *setup() {
-    state *s = newState();
-    grid *g = newGrid(3, 3);
-    kind *level[] = {"...", "#@*", "..."};
-    for (int x = 0; x < 3; x++) {
-        for (int y = 0; y < 3; y++) {
-            newEntity(s, g, x, y, level[y][x]);
-        }
-    }
-    return g;
-}
-
-static void testWake(grid *g) {
-    entity *player = getCell(g, 1, 1);
-    for (int x = 0; x < 3; x++) {
-        for (int y = 0; y < 3; y++) {
-            entity *e = getCell(g, x, y);
-            wake(e);
-        }
-    }
-    state *s = getState(player);
-    assert(getPlayer(s) == player);
-    int n = getStars(s);
-    assert(n == 1);
-}
-
-int main() {
-    grid *g = setup();
-    testWake(g);
-    succeed("Action module OK");
-    return 0;
-}
-
-#endif

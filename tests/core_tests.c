@@ -99,6 +99,6 @@ int main(void) {
     test_player_collects_star();
     test_level_validation();
     test_fractal_math();
-    puts("emerald core tests passed");
+    puts("SDL2 Visual Explorer core tests passed");
     return 0;
 }
