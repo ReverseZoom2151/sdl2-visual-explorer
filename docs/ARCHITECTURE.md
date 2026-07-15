@@ -1,6 +1,6 @@
-# Architecture
+# SDL2 Visual Explorer architecture
 
-Emerald Maze has three deliberately separated layers.
+SDL2 Visual Explorer has three deliberately separated layers.
 
 - `include/emerald/` contains the public C interfaces shared by every target.
 - `src/core/` owns the maze model: directions, grid storage, entities, state,
@@ -14,4 +14,4 @@ reference but are not part of the core API. `tests/` exercises core behavior
 without opening a window.
 
 The CMake targets mirror the boundaries: `emerald_core`, `emerald_display`,
-`emerald-maze`, `emerald-fractal`, and `emerald-core-tests`.
+`maze-explorer`, `fractal-explorer`, and `emerald-core-tests`.

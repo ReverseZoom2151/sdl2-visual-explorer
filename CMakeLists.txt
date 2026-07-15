@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(emerald_maze VERSION 1.0.0 LANGUAGES C)
+project(sdl2_visual_explorer VERSION 1.0.0 LANGUAGES C)
 
 include(CTest)
 
@@ -36,11 +36,11 @@ target_compile_options(emerald_display PRIVATE
     $<$<C_COMPILER_ID:Clang,GNU>:-Wall -Wextra -Wpedantic -Wconversion -Wshadow>
 )
 
-add_executable(emerald-maze app/emerald_maze.c)
-target_link_libraries(emerald-maze PRIVATE emerald_core emerald_display)
+add_executable(maze-explorer app/maze_explorer.c)
+target_link_libraries(maze-explorer PRIVATE emerald_core emerald_display)
 
-add_executable(emerald-fractal app/fractal_explorer.c)
-target_link_libraries(emerald-fractal PRIVATE emerald_display)
+add_executable(fractal-explorer app/fractal_explorer.c)
+target_link_libraries(fractal-explorer PRIVATE emerald_core emerald_display)
 
 add_executable(emerald-hello-display examples/hello_display.c)
 target_link_libraries(emerald-hello-display PRIVATE emerald_display)
@@ -55,7 +55,7 @@ if(BUILD_TESTING)
 endif()
 
 if(EMERALD_ENABLE_SANITIZERS AND CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
-    foreach(target emerald_core emerald_display emerald-maze emerald-fractal emerald-hello-display emerald-hello-sdl emerald-core-tests)
+    foreach(target emerald_core emerald_display maze-explorer fractal-explorer emerald-hello-display emerald-hello-sdl emerald-core-tests)
         if(TARGET ${target})
             target_compile_options(${target} PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
             target_link_options(${target} PRIVATE -fsanitize=address,undefined)
