@@ -18,4 +18,4 @@ void line(display *d, int x0, int y0, int x1, int y1);
 void block(display *d, int x, int y, int w, int h);
 void pixel(display *d, int x, int y);
 void colour(display *d, int rgba);
-void run(display *d, void *data, bool action(display*, void*, const char));
+void run(display *d, void *data, bool action(display *, void *, const char));

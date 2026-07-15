@@ -1,0 +1,8 @@
+/build/
+/.cache/
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
+*.dSYM/

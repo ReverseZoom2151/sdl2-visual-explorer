@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build libsdl2-dev clang-format valgrind
+      - name: Check formatting
+        run: cmake -S . -B build/ci -G Ninja && cmake --build build/ci --target format-check
+      - name: Build and test
+        run: cmake --preset dev && cmake --build --preset dev && ctest --test-dir build/dev --output-on-failure
+      - name: Check core tests for memory errors
+        run: valgrind --error-exitcode=1 --leak-check=full build/dev/emerald-core-tests
+      - name: Build and test with sanitizers
+        run: cmake --preset sanitize && cmake --build --preset sanitize && ctest --test-dir build/sanitize --output-on-failure

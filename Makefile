@@ -1,27 +1,28 @@
-base = base.c
-direction = direction.c base.c
-grid = grid.c $(direction)
-state = state.c base.c
-entity = entity.c state.c $(grid)
-action = action.c $(entity)
-display = display.c -lSDL2
-maze = maze.c $(action) $(display)
-fractal = fractal.c display.c -lSDL2  
+BUILD_DIR ?= build/dev
 
-DEV = -g -fsanitize=undefined -fsanitize=address
-OPT = -O2 -flto
-CC = gcc 
-# CC = clang
-CFLAGS = -D$@Test -std=c11 -Wall -pedantic $(DEV) -o m
+.PHONY: all configure build test sanitize format format-check clean
 
-maze: $(maze)
-	$(CC) $(CFLAGS) -o maze $(maze)
+all: build
 
-fractal: $(fractal)
-	$(CC) $(CFLAGS) -o fractal $(fractal)
+configure:
+	cmake --preset dev
 
-base: $(base)
-	$(CC) $(CFLAGS) -o base $(base)
+build: configure
+	cmake --build --preset dev
+
+test: build
+	ctest --test-dir $(BUILD_DIR) --output-on-failure
+
+sanitize:
+	cmake --preset sanitize
+	cmake --build --preset sanitize
+	ctest --test-dir build/sanitize --output-on-failure
+
+format:
+	cmake --build $(BUILD_DIR) --target format
+
+format-check: configure
+	cmake --build $(BUILD_DIR) --target format-check
 
 clean:
-	rm -f maze fractal base
+	cmake -E rm -rf build

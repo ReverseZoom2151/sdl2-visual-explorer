@@ -10,8 +10,10 @@ struct grid {
 };
 
 static void checkBounds(grid *g, int x, int y) {
-    if (x < 0 || x >= g->width) fail("x out of bounds");
-    if (y < 0 || y >= g->height) fail("y out of bounds");
+    if (x < 0 || x >= g->width)
+        fail("x out of bounds");
+    if (y < 0 || y >= g->height)
+        fail("y out of bounds");
 }
 
 grid *newGrid(int width, int height) {
@@ -32,9 +34,10 @@ grid *newGrid(int width, int height) {
 
 void freeGrid(grid *g) {
     for (int x = 0; x < g->width; x++) {
-      for (int y = 0; y < g->height; y++)
-        if (g->cells[x][y] != NULL) free(g->cells[x][y]);
-      free(g->cells[x]);
+        for (int y = 0; y < g->height; y++)
+            if (g->cells[x][y] != NULL)
+                free(g->cells[x][y]);
+        free(g->cells[x]);
     }
     free(g->cells);
     free(g);
@@ -56,7 +59,9 @@ void *nextCell(grid *g, int x, int y, direction d) {
 
 #ifdef gridTest
 
-struct entity { char kind; };
+struct entity {
+    char kind;
+};
 typedef struct entity entity;
 
 static entity *newEntity(char k) {

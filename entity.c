@@ -5,37 +5,27 @@
 
 struct entity {
     kind k;
-    int x, y; 
+    int x, y;
     state *s;
     grid *g;
 };
 
 entity *newEntity(state *s, grid *g, int x, int y, kind k) {
     entity *e = malloc(sizeof(entity));
-    *e = (entity) { k, x, y, s, g };
+    *e = (entity){k, x, y, s, g};
     setCell(g, x, y, e);
     return e;
 }
 
-void freeEntity(entity *e) {
-    free(e);
-}
+void freeEntity(entity *e) { free(e); }
 
-kind getKind(entity *e) {
-    return e->k;
-}
+kind getKind(entity *e) { return e->k; }
 
-state *getState(entity *e) {
-    return e->s;
-}
+state *getState(entity *e) { return e->s; }
 
-grid *getGrid(entity *e) {
-    return e->g;
-}
+grid *getGrid(entity *e) { return e->g; }
 
-entity *getNext(entity *e, direction d) {
-    return nextCell(e->g, e->x, e->y, d);
-}
+entity *getNext(entity *e, direction d) { return nextCell(e->g, e->x, e->y, d); }
 
 void move(entity *e, entity *target) {
     grid *g = e->g;
@@ -49,18 +39,16 @@ void move(entity *e, entity *target) {
     setCell(g, e->x, e->y, e);
 }
 
-void mutate(entity *e, kind newKind) {
-    e->k = newKind;
-}
+void mutate(entity *e, kind newKind) { e->k = newKind; }
 
 #ifdef entityTest
 
 static grid *setup() {
     state *s = newState();
     grid *g = newGrid(3, 3);
-    kind *level[] = { "...", ".@.", "..." };
-    for (int x=0; x<3; x++) {
-        for (int y=0; y<3; y++) {
+    kind *level[] = {"...", ".@.", "..."};
+    for (int x = 0; x < 3; x++) {
+        for (int y = 0; y < 3; y++) {
             newEntity(s, g, x, y, level[y][x]);
         }
     }

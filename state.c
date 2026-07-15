@@ -10,37 +10,23 @@ struct state {
 
 state *newState() {
     state *s = malloc(sizeof(state));
-    *s = (struct state) { NULL, 0 };
+    *s = (struct state){NULL, 0};
     return s;
 }
 
-void freeState(state *s) {
-    free(s);
-}
+void freeState(state *s) { free(s); }
 
-void setPlayer(state *s, entity *p) {
-    s->player = p;
-}
+void setPlayer(state *s, entity *p) { s->player = p; }
 
-entity *getPlayer(state *s) {
-    return s->player;
-}
+entity *getPlayer(state *s) { return s->player; }
 
-void addStar(state *s) {
-    s->stars++;
-}
+void addStar(state *s) { s->stars++; }
 
-int getStars(state *s) {
-    return s->stars;
-}
+int getStars(state *s) { return s->stars; }
 
-void findStar(state *s) {
-    --s->stars;
-}
+void findStar(state *s) { --s->stars; }
 
-bool ended(state *s) {
-    return s->stars == 0;
-}
+bool ended(state *s) { return s->stars == 0; }
 
 #ifdef stateTest
 
