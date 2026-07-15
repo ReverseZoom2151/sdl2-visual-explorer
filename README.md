@@ -30,17 +30,11 @@ ctest --test-dir build/dev --output-on-failure
 
 `maze-explorer` is a small grid game: collect every emerald while navigating a wall-bounded level. The application renders the model, but does not own it. `src/core/level.c` validates each ASCII level before creating entities: rows must match the grid width, only known tiles are accepted, and exactly one player is required.
 
-```text
-#########
-#...#..*#
-#.#.#.###
-#.#....*#
-#.####.##
-#@#*....#
-####.##.#
-#*...#*.#
-#########
-```
+<p align="center">
+  <img src="assets/maze-demo.gif" alt="Emerald Maze gameplay capture showing player movement and emerald collection" width="576" />
+</p>
+
+The animation is a direct capture of the compiled SDL program running its current level, not a separate illustration.
 
 | Control | Action |
 | --- | --- |
@@ -52,6 +46,12 @@ The core handles movement, walls, collectibles, state transitions, and safe out-
 ## 2. Mandelbrot Flight
 
 `fractal-explorer` renders a deterministic view of the Mandelbrot set. Its mapping, escape-time iteration, zooming, and panning live in the tested core layer; the application only turns iterations into pixels.
+
+<p align="center">
+  <img src="assets/fractal-demo.gif" alt="Mandelbrot explorer capture showing zoom and pan transitions" width="640" />
+</p>
+
+This is likewise captured from the SDL application as it receives real keyboard zoom and pan events.
 
 ```c
 fractalView view = defaultFractalView();
