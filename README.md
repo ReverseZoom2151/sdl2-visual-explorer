@@ -1,119 +1,97 @@
-# Emerald Maze Game
+# Emerald Maze
 
-## Overview
+Emerald Maze is a compact C23 and SDL2 project built around two small visual programs:
 
-**Emerald Maze Game** is a simple grid-based game where the player navigates through a maze, collects stars, and avoids walls. The project also includes visualizations such as a Mandelbrot fractal and some SDL-based demonstrations.
+- **Emerald Maze** — collect every emerald in a fixed grid while navigating walls with the arrow keys.
+- **Mandelbrot Flight** — explore a continuously-rendered Mandelbrot view with keyboard zoom and pan controls.
 
-![maze](https://github.com/user-attachments/assets/4a6dd6a4-905a-4d89-bc70-8e81596443c0)
-![fractal](https://github.com/user-attachments/assets/3cd136b4-464c-4392-8047-1d226dcf7a64)
+The repository is intentionally more than a pair of demos. Its maze model is a separate, tested C library with validated ASCII levels, explicit ownership, and no SDL dependency. SDL2 is kept at the presentation boundary.
 
-## Table of Contents
+## Highlights
 
-1. [Project Structure](#project-structure)
-2. [Prerequisites](#prerequisites)
-3. [Installation](#installation)
-4. [Building the Project](#building-the-project)
-5. [Running the Games and Visualizations](#running-the-games-and-visualizations)
-6. [Cleaning Up](#cleaning-up)
-7. [Contributing](#contributing)
-8. [License](#license)
+- C23 project built with CMake and Ninja.
+- A testable maze core: directions, entities, grid storage, game state, player actions, and level validation.
+- SDL2 display adapter with checked startup and software-renderer fallback.
+- CTest, Valgrind, AddressSanitizer, UndefinedBehaviorSanitizer, clang-format, and GitHub Actions checks.
+- A clean source layout rather than a flat collection of coursework files.
 
-## Project Structure
+## Quick start
 
-
-- **`action.c` / `action.h`**: Handles the logic for entity actions such as moving and interacting with objects.
-- **`base.c` / `base.h`**: Provides basic utility functions.
-- **`direction.c` / `direction.h`**: Manages directional movement and related calculations.
-- **`display.c` / `display.h`**: Uses SDL2 for rendering and display management.
-- **`entity.c` / `entity.h`**: Manages game entities and their interactions.
-- **`fractal.c`**: Generates and visualizes a Mandelbrot fractal.
-- **`grid.c` / `grid.h`**: Manages the grid structure for the game.
-- **`maze.c`**: Implements the main game logic for the maze.
-- **`state.c` / `state.h`**: Manages the state of the game.
-- **`hellodisplay.c`** and **`hellosdl.c`**: Simple SDL demos.
-- **`Makefile`**: Automates the build process.
-
-## Prerequisites
-
-- **C Compiler**: GCC or Clang
-- **SDL2 Library**: The Simple DirectMedia Layer (SDL) library is required to compile and run the graphical components of the project.
-  
-### Installing SDL2
-
-For Ubuntu/Debian-based systems:
+On Ubuntu or Debian, install the prerequisites:
 
 ```bash
-sudo apt update
-sudo apt install libsdl2-dev
+sudo apt-get install -y cmake ninja-build libsdl2-dev
 ```
 
-For macOS (using Homebrew):
-**brew install sdl2**
+Build and test:
 
-For Windows:
-
-Install SDL2 from the SDL website and ensure the libraries are available in your compiler's search path.
-
-## Installation
-
-Clone the repository to your local machine:
-
-```
-git clone https://github.com/yourusername/emerald_maze_game.git
-cd emerald_maze_game
+```bash
+cmake --preset dev
+cmake --build --preset dev
+ctest --test-dir build/dev --output-on-failure
 ```
 
-## Building the Project
+Run the applications:
 
-The project uses a Makefile to manage the build process. Use the make command to build different parts of the project:
+```bash
+./build/dev/emerald-maze
+./build/dev/emerald-fractal
+```
 
-### Build the Maze Game:
+The Makefile is a small convenience wrapper for the same workflow:
 
-```make maze```
+```bash
+make build
+make test
+make sanitize
+```
 
-### Build the Fractal Visualization:
+## Controls
 
-```make fractal```
+| Program | Controls |
+| --- | --- |
+| Emerald Maze | Arrow keys move. Collect every emerald. `Esc` quits. |
+| Mandelbrot Flight | `Z` zooms in, `X` zooms out, arrow keys pan, and `Esc` quits. |
 
-Build the Base Module Test:
+## Project layout
 
-```make base```
+```text
+app/                 maintained SDL applications
+examples/            small SDL reference programs
+include/emerald/     public library headers
+src/core/            tested, SDL-independent maze model
+src/platform/        SDL2 display adapter
+tests/               CTest regression coverage
+docs/                architecture and implementation notes
+```
 
-## Running the Games and Visualizations
+The dependency direction is deliberate:
 
-After building the executables, you can run them as follows:
+```text
+app ──> platform (SDL2)
+  └──> core (no graphics dependency)
+```
 
-### Maze Game:
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the component-level breakdown.
 
-```./maze```
+## Quality checks
 
-### Fractal Visualization:
+The default development preset builds debug targets and runs the core tests. The sanitizer preset adds AddressSanitizer and UndefinedBehaviorSanitizer:
 
-```./fractal```
+```bash
+cmake --preset sanitize
+cmake --build --preset sanitize
+ctest --test-dir build/sanitize --output-on-failure
+```
 
-### Base Module Test:
+For a memory check of the non-graphical core:
 
-```./base```
+```bash
+valgrind --error-exitcode=1 --leak-check=full build/dev/emerald-core-tests
+```
 
-## Controls:
-- Maze Game: Use the arrow keys to move the player around the maze. Collect stars while avoiding walls. Press ESC to exit.
-- Fractal Visualization: Zoom in and out using the Z and X keys. Use the arrow keys to navigate. Press ESC to exit.
+GitHub Actions runs formatting, CTest, Valgrind, and sanitizer checks on every push and pull request.
 
-## Cleaning Up:
+## Status
 
-To clean up the build directory and remove all generated executables, run:
-
-```make clean```
-
-## Contributing:
-
-Contributions are welcome! Please follow these steps to contribute:
-
-1. Fork the repository.
-2. Create a new branch: git checkout -b feature-branch-name.
-3. Make your changes and commit them: git commit -m 'Description of changes'.
-4. Push to the branch: git push origin feature-branch-name.
-5. Open a pull request.
-
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+Emerald Maze is a focused learning and systems-programming project. The code is structured to make further work straightforward: additional validated levels, game states, rendering themes, and fractal palettes can be added without entangling the core model with SDL.
