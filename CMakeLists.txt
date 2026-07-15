@@ -19,6 +19,7 @@ add_library(emerald_core STATIC
     src/core/direction.c
     src/core/entity.c
     src/core/grid.c
+    src/core/level.c
     src/core/state.c
 )
 

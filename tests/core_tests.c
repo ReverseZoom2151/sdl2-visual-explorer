@@ -1,6 +1,7 @@
 #include "emerald/action.h"
 #include "emerald/base.h"
 #include "emerald/direction.h"
+#include "emerald/level.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -55,10 +56,36 @@ static void test_player_collects_star(void) {
     freeGrid(board);
 }
 
+static void test_level_validation(void) {
+    state *game = newState();
+    grid *board = newGrid(3, 2);
+    const char *const valid[] = {"@.*", "###"};
+    assert(populateLevel(game, board, valid));
+    assert(getStars(game) == 1);
+    assert(getKind(getPlayer(game)) == Player);
+    freeState(game);
+    freeGrid(board);
+
+    const char *const missing_player[] = {"...", "###"};
+    game = newState();
+    board = newGrid(3, 2);
+    assert(!populateLevel(game, board, missing_player));
+    freeState(game);
+    freeGrid(board);
+
+    const char *const invalid_tile[] = {"@..", "#x#"};
+    game = newState();
+    board = newGrid(3, 2);
+    assert(!populateLevel(game, board, invalid_tile));
+    freeState(game);
+    freeGrid(board);
+}
+
 int main(void) {
     test_directions();
     test_grid_rejects_invalid_dimensions_and_bounds();
     test_player_collects_star();
+    test_level_validation();
     puts("emerald core tests passed");
     return 0;
 }

@@ -1,24 +1,14 @@
 #include "emerald/action.h"
 #include "emerald/direction.h"
 #include "emerald/display.h"
+#include "emerald/level.h"
 #include <stdbool.h>
 
 #define BLOCKSIZE 32
 
 static const int width = 9, height = 9;
-static char *level[] = {"#########", "#...#..*#", "#.#.#.###", "#.#....*#", "#.####.##",
-                        "#@#*....#", "####.##.#", "#*...#*.#", "#########"};
-
-static entity *fill(grid *g, state *s) {
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            newEntity(s, g, x, y, level[y][x]);
-            entity *e = getCell(g, x, y);
-            wake(e);
-        }
-    }
-    return getPlayer(s);
-}
+static const char *const level[] = {"#########", "#...#..*#", "#.#.#.###", "#.#....*#", "#.####.##",
+                                    "#@#*....#", "####.##.#", "#*...#*.#", "#########"};
 
 static void draw(display *d, grid *g, int stars) {
     for (int x = 0; x < width; x++) {
@@ -71,7 +61,12 @@ bool navigate(display *d, void *data, SDL_Keycode pressedKey) {
 int main() {
     grid *g = newGrid(width, height);
     state *s = newState();
-    entity *player = fill(g, s);
+    if (g == NULL || s == NULL || !populateLevel(s, g, level)) {
+        freeState(s);
+        freeGrid(g);
+        return 1;
+    }
+    entity *player = getPlayer(s);
     display *d = newDisplay("Emerald Maze", width * BLOCKSIZE, height * BLOCKSIZE);
     if (d == NULL) {
         freeState(s);
