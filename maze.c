@@ -46,18 +46,18 @@ static void draw(display *d, grid *g, int stars) {
     }
 }
 
-bool navigate(display *d, void *data, const char pressedKey) {
+bool navigate(display *d, void *data, SDL_Keycode pressedKey) {
     entity *player = (entity *)data;
     grid *g = getGrid(player);
     int stars = getStars(getState(player));
     if (stars != 0) {
-        if (pressedKey == 80)
+        if (pressedKey == SDLK_LEFT)
             act(player, West);
-        else if (pressedKey == 79)
+        else if (pressedKey == SDLK_RIGHT)
             act(player, East);
-        else if (pressedKey == 82)
+        else if (pressedKey == SDLK_UP)
             act(player, North);
-        else if (pressedKey == 81)
+        else if (pressedKey == SDLK_DOWN)
             act(player, South);
         draw(d, g, stars);
     } else {
@@ -65,7 +65,7 @@ bool navigate(display *d, void *data, const char pressedKey) {
         block(d, 0, 0, BLOCKSIZE * width, BLOCKSIZE * height);
     }
     show(d);
-    return (pressedKey == 27);
+    return pressedKey == SDLK_ESCAPE;
 }
 
 int main() {
@@ -73,8 +73,14 @@ int main() {
     state *s = newState();
     entity *player = fill(g, s);
     display *d = newDisplay("Emerald Maze", width * BLOCKSIZE, height * BLOCKSIZE);
+    if (d == NULL) {
+        freeState(s);
+        freeGrid(g);
+        return 1;
+    }
     run(d, (void *)player, navigate);
     freeState(s);
     freeGrid(g);
     freeDisplay(d);
+    return 0;
 }

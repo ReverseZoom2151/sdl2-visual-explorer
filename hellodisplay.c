@@ -6,35 +6,38 @@ typedef struct location {
     int x, y;
 } location;
 
-bool functionToCallRepeatedly(display *d, void *data, const char pressedKey) {
+bool functionToCallRepeatedly(display *d, void *data, SDL_Keycode pressedKey) {
     location *l = (location *)data;
     colour(d, 0xFF);
     block(d, 0, 0, getWidth(d), getHeight(d));
     switch (pressedKey) {
-    case 79:
+    case SDLK_RIGHT:
         l->x += SCALE;
         break;
-    case 80:
+    case SDLK_LEFT:
         l->x -= SCALE;
         break;
-    case 81:
+    case SDLK_DOWN:
         l->y += SCALE;
         break;
-    case 82:
+    case SDLK_UP:
         l->y -= SCALE;
     }
     *l = (location){(l->x + getWidth(d)) % getWidth(d), (l->y + getHeight(d)) % getHeight(d)};
     colour(d, 0xFFFF);
     block(d, l->x, l->y, SCALE, SCALE);
     show(d);
-    return (pressedKey == 27);
+    return pressedKey == SDLK_ESCAPE;
 }
 
 int main() {
     display *d = newDisplay("Hello Display", 320, 240);
+    if (d == NULL)
+        return 1;
     location *l = malloc(sizeof(location));
     *l = (location){0, 0};
     run(d, l, functionToCallRepeatedly);
     free(l);
     freeDisplay(d);
+    return 0;
 }

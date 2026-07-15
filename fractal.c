@@ -36,7 +36,7 @@ int calculateMandelbrot(const int accuracy, const int x, const int y, const int 
     return i;
 }
 
-bool navigateMandelbrot(display *d, void *data, const char pressedKey) {
+bool navigateMandelbrot(display *d, void *data, SDL_Keycode pressedKey) {
 
     params *p = (params *)data;
 
@@ -67,20 +67,29 @@ bool navigateMandelbrot(display *d, void *data, const char pressedKey) {
     show(d);
     if (p->s < 1.0E-6)
         p->s = 1.0E-3;
-    *p = (params){(pressedKey == 120)
-                      ? (p->s / (ZOOM / 1.15))
-                      : ((pressedKey == 122) ? (p->s / (ZOOM * 1.15)) : (p->s / ZOOM)),
-                  ((pressedKey == 79) || (pressedKey == 80))
-                      ? (p->x + p->s * (w / 4 - ((pressedKey - 78) * 2 - 3) * (w / 20) - tx) / w)
-                      : (p->x + p->s * c.x / w),
-                  ((pressedKey == 81) || (pressedKey == 82))
-                      ? (p->y + p->s * (h / 4 - ((pressedKey - 80) * 2 - 3) * (h / 20) - ty) / h)
-                      : (p->y + p->s * c.y / h)};
-    return (pressedKey == 27);
+    double scale = p->s / ZOOM;
+    if (pressedKey == SDLK_x)
+        scale = p->s / (ZOOM / 1.15);
+    if (pressedKey == SDLK_z)
+        scale = p->s / (ZOOM * 1.15);
+    double nextX = p->x + p->s * c.x / w;
+    double nextY = p->y + p->s * c.y / h;
+    if (pressedKey == SDLK_RIGHT)
+        nextX += p->s / 20.0;
+    if (pressedKey == SDLK_LEFT)
+        nextX -= p->s / 20.0;
+    if (pressedKey == SDLK_DOWN)
+        nextY += p->s / 20.0;
+    if (pressedKey == SDLK_UP)
+        nextY -= p->s / 20.0;
+    *p = (params){scale, nextX, nextY};
+    return pressedKey == SDLK_ESCAPE;
 }
 
 int main() {
     display *d = newDisplay("Mandelbrot Flight", 256, 256);
+    if (d == NULL)
+        return 1;
     void *data = newFractalState();
     run(d, data, navigateMandelbrot);
     freeFractalState(data);

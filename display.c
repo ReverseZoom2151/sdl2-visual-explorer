@@ -1,6 +1,4 @@
 #include "display.h"
-#define SDL_MAIN_HANDLED
-#define FAILURE_CODE 1
 
 struct display {
     SDL_Window *window;
@@ -9,85 +7,112 @@ struct display {
     int height;
 };
 
-static void fail() {
-    fprintf(stderr, "Error: %s\n", SDL_GetError());
-    SDL_Quit();
-    exit(FAILURE_CODE);
+static void reportSdlError(const char *context) {
+    fprintf(stderr, "%s: %s\n", context, SDL_GetError());
 }
 
-static int safeI(int n) {
-    if (n < 0)
-        fail();
-    return n;
-}
-static void *safeP(void *p) {
-    if (p == NULL)
-        fail();
-    return p;
+static bool setRendererColour(SDL_Renderer *renderer, Uint32 rgba) {
+    Uint8 red = (Uint8)((rgba >> 24) & 0xFFU);
+    Uint8 green = (Uint8)((rgba >> 16) & 0xFFU);
+    Uint8 blue = (Uint8)((rgba >> 8) & 0xFFU);
+    Uint8 alpha = (Uint8)(rgba & 0xFFU);
+    return SDL_SetRenderDrawColor(renderer, red, green, blue, alpha) == 0;
 }
 
-void show(display *d) {
-    SDL_RenderPresent(d->renderer);
-    SDL_Delay(10);
+display *newDisplay(const char *title, int width, int height) {
+    if (title == NULL || width <= 0 || height <= 0)
+        return NULL;
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        reportSdlError("SDL video initialization failed");
+        return NULL;
+    }
+
+    display *value = calloc(1, sizeof(*value));
+    if (value == NULL) {
+        SDL_Quit();
+        return NULL;
+    }
+    value->width = width;
+    value->height = height;
+    value->window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width,
+                                     height, SDL_WINDOW_SHOWN);
+    if (value->window == NULL) {
+        reportSdlError("SDL window creation failed");
+        freeDisplay(value);
+        return NULL;
+    }
+    value->renderer = SDL_CreateRenderer(value->window, -1, SDL_RENDERER_ACCELERATED);
+    if (value->renderer == NULL)
+        value->renderer = SDL_CreateRenderer(value->window, -1, SDL_RENDERER_SOFTWARE);
+    if (value->renderer == NULL) {
+        reportSdlError("SDL renderer creation failed");
+        freeDisplay(value);
+        return NULL;
+    }
+    colour(value, 0x000000FFU);
+    SDL_RenderClear(value->renderer);
+    return value;
 }
 
-int getWidth(display *d) { return d->width; }
-
-int getHeight(display *d) { return d->height; }
-
-void line(display *d, int x0, int y0, int x1, int y1) {
-    safeI(SDL_RenderDrawLine(d->renderer, x0, y0, x1, y1));
+void show(display *value) {
+    if (value != NULL)
+        SDL_RenderPresent(value->renderer);
 }
 
-void block(display *d, int x, int y, int w, int h) {
-    SDL_Rect r = (SDL_Rect){x, y, w, h};
-    safeI(SDL_RenderFillRect(d->renderer, &r));
+int getWidth(display *value) { return value == NULL ? 0 : value->width; }
+
+int getHeight(display *value) { return value == NULL ? 0 : value->height; }
+
+void line(display *value, int x0, int y0, int x1, int y1) {
+    if (value != NULL)
+        SDL_RenderDrawLine(value->renderer, x0, y0, x1, y1);
 }
 
-void pixel(display *d, int x, int y) { safeI(SDL_RenderDrawPoint(d->renderer, x, y)); }
-
-void colour(display *d, int rgba) {
-    Uint8 r = (rgba >> 24) & 0xFF;
-    Uint8 g = (rgba >> 16) & 0xFF;
-    Uint8 b = (rgba >> 8) & 0xFF;
-    Uint8 a = rgba & 0xFF;
-    safeI(SDL_SetRenderDrawColor(d->renderer, r, g, b, a));
+void block(display *value, int x, int y, int width, int height) {
+    if (value == NULL)
+        return;
+    SDL_Rect rectangle = {x, y, width, height};
+    SDL_RenderFillRect(value->renderer, &rectangle);
 }
 
-display *newDisplay(char *title, int width, int height) {
-    setbuf(stdout, NULL);
-    display *d = malloc(sizeof(display));
-    safeI(SDL_Init(SDL_INIT_VIDEO));
-    d->width = width;
-    d->height = height;
-    d->window = safeP(SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                       width, height, SDL_WINDOW_SHOWN));
-    d->renderer = safeP(SDL_CreateRenderer(d->window, -1, SDL_RENDERER_ACCELERATED));
-    safeI(SDL_RenderClear(d->renderer));
-    colour(d, 0xFFFFFFFF);
-    show(d);
-    return d;
+void pixel(display *value, int x, int y) {
+    if (value != NULL)
+        SDL_RenderDrawPoint(value->renderer, x, y);
 }
 
-void run(display *d, void *data, bool action(display *, void *, const char)) {
+void colour(display *value, Uint32 rgba) {
+    if (value != NULL && !setRendererColour(value->renderer, rgba))
+        reportSdlError("SDL colour update failed");
+}
+
+void run(display *value, void *data, displayAction action) {
+    if (value == NULL || action == NULL)
+        return;
+
     bool quit = false;
-    char key = 0;
-    SDL_Event e;
+    SDL_Keycode key = SDLK_UNKNOWN;
     while (!quit) {
-        quit = action(d, data, key);
-        key = 0;
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_KEYDOWN)
-                key = (char)e.key.keysym.sym;
-            if (e.type == SDL_QUIT)
+        quit = action(value, data, key);
+        key = SDLK_UNKNOWN;
+
+        SDL_Event event;
+        while (SDL_PollEvent(&event) != 0) {
+            if (event.type == SDL_QUIT)
                 quit = true;
+            else if (event.type == SDL_KEYDOWN)
+                key = event.key.keysym.sym;
         }
+        SDL_Delay(10);
     }
 }
 
-void freeDisplay(display *d) {
-    SDL_DestroyRenderer(d->renderer);
-    SDL_DestroyWindow(d->window);
+void freeDisplay(display *value) {
+    if (value == NULL)
+        return;
+    if (value->renderer != NULL)
+        SDL_DestroyRenderer(value->renderer);
+    if (value->window != NULL)
+        SDL_DestroyWindow(value->window);
+    free(value);
     SDL_Quit();
-    free(d);
 }
