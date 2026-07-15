@@ -1,5 +1,5 @@
-#include "grid.h"
-#include "state.h"
+#include "emerald/grid.h"
+#include "emerald/state.h"
 
 struct entity;
 typedef struct entity entity;

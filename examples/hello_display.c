@@ -1,4 +1,4 @@
-#include "display.h"
+#include "emerald/display.h"
 #include <stdbool.h>
 
 #define SCALE 16

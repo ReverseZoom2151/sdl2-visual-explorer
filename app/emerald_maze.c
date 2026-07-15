@@ -1,6 +1,6 @@
-#include "display.h"
-#include "action.h"
-#include "direction.h"
+#include "emerald/action.h"
+#include "emerald/direction.h"
+#include "emerald/display.h"
 #include <stdbool.h>
 
 #define BLOCKSIZE 32

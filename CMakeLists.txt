@@ -9,40 +9,41 @@ option(EMERALD_ENABLE_SANITIZERS "Enable AddressSanitizer and UndefinedBehaviorS
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(SDL2 2.0 REQUIRED)
 
 add_library(emerald_core STATIC
-    action.c
-    base.c
-    direction.c
-    entity.c
-    grid.c
-    state.c
+    src/core/action.c
+    src/core/base.c
+    src/core/direction.c
+    src/core/entity.c
+    src/core/grid.c
+    src/core/state.c
 )
 
-target_include_directories(emerald_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(emerald_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_options(emerald_core PRIVATE
     $<$<C_COMPILER_ID:Clang,GNU>:-Wall -Wextra -Wpedantic -Wconversion -Wshadow>
 )
 
-add_library(emerald_display STATIC display.c)
-target_include_directories(emerald_display PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+add_library(emerald_display STATIC src/platform/display.c)
+target_include_directories(emerald_display PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(emerald_display PUBLIC SDL2::SDL2)
 target_compile_options(emerald_display PRIVATE
     $<$<C_COMPILER_ID:Clang,GNU>:-Wall -Wextra -Wpedantic -Wconversion -Wshadow>
 )
 
-add_executable(emerald-maze maze.c)
+add_executable(emerald-maze app/emerald_maze.c)
 target_link_libraries(emerald-maze PRIVATE emerald_core emerald_display)
 
-add_executable(emerald-fractal fractal.c)
+add_executable(emerald-fractal app/fractal_explorer.c)
 target_link_libraries(emerald-fractal PRIVATE emerald_display)
 
-add_executable(emerald-hello-display hellodisplay.c)
+add_executable(emerald-hello-display examples/hello_display.c)
 target_link_libraries(emerald-hello-display PRIVATE emerald_display)
 
-add_executable(emerald-hello-sdl hellosdl.c)
+add_executable(emerald-hello-sdl examples/hello_sdl.c)
 target_link_libraries(emerald-hello-sdl PRIVATE SDL2::SDL2)
 
 if(BUILD_TESTING)
@@ -63,8 +64,11 @@ endif()
 find_program(CLANG_FORMAT_EXECUTABLE NAMES clang-format)
 if(CLANG_FORMAT_EXECUTABLE)
     file(GLOB EMERALD_FORMAT_SOURCES CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/app/*.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/examples/*.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/emerald/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/*.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.c"
     )
     add_custom_target(format

@@ -1,5 +1,5 @@
-#include "direction.h"
-#include "base.h"
+#include "emerald/direction.h"
+#include "emerald/base.h"
 #include <stdbool.h>
 #include <assert.h>
 

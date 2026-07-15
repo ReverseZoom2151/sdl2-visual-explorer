@@ -1,4 +1,4 @@
-#include "display.h"
+#include "emerald/display.h"
 
 struct display {
     SDL_Window *window;

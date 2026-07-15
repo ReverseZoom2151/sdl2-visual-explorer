@@ -1,4 +1,4 @@
-#include "display.h"
+#include "emerald/display.h"
 #include <float.h>
 #include <time.h>
 #include <assert.h>

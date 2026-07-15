@@ -1,6 +1,6 @@
-#include "action.h"
-#include "base.h"
-#include "direction.h"
+#include "emerald/action.h"
+#include "emerald/base.h"
+#include "emerald/direction.h"
 
 #include <assert.h>
 #include <stdio.h>

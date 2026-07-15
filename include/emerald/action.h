@@ -1,4 +1,4 @@
-#include "entity.h"
+#include "emerald/entity.h"
 
 enum kind { Blank = '.', Wall = '#', Star = '*', Player = '@' };
 typedef char kind;

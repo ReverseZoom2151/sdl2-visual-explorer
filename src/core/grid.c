@@ -1,8 +1,8 @@
-#include "grid.h"
+#include "emerald/grid.h"
 
-#include "base.h"
-#include "direction.h"
-#include "entity.h"
+#include "emerald/base.h"
+#include "emerald/direction.h"
+#include "emerald/entity.h"
 
 #include <stdint.h>
 #include <stdlib.h>

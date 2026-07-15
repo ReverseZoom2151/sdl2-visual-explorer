@@ -1,5 +1,5 @@
-#include "entity.h"
-#include "base.h"
+#include "emerald/entity.h"
+#include "emerald/base.h"
 #include <stdlib.h>
 #include <assert.h>
 
