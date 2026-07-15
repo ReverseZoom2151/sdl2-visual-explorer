@@ -1,6 +1,7 @@
 #include "emerald/action.h"
 #include "emerald/base.h"
 #include "emerald/direction.h"
+#include "emerald/fractal.h"
 #include "emerald/level.h"
 
 #include <assert.h>
@@ -81,11 +82,23 @@ static void test_level_validation(void) {
     freeGrid(board);
 }
 
+static void test_fractal_math(void) {
+    fractalView view = defaultFractalView();
+    assert(mandelbrotIterations(&view, 50, 50, 100, 100, 64) == 64);
+    assert(mandelbrotIterations(&view, 99, 99, 100, 100, 64) < 64);
+    assert(mandelbrotIterations(&view, -1, 0, 100, 100, 64) == 0);
+    assert(zoomFractal(&view, 0.5));
+    assert(view.scale == 0.75);
+    assert(panFractal(&view, 0.1, -0.2));
+    assert(!zoomFractal(&view, 0.0));
+}
+
 int main(void) {
     test_directions();
     test_grid_rejects_invalid_dimensions_and_bounds();
     test_player_collects_star();
     test_level_validation();
+    test_fractal_math();
     puts("emerald core tests passed");
     return 0;
 }

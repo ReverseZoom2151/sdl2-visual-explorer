@@ -1,98 +1,88 @@
 #include "emerald/display.h"
-#include <float.h>
-#include <time.h>
-#include <assert.h>
+#include "emerald/fractal.h"
 
-#define ZOOM 1.03
-#define ACC 64
-#define STEPS 2
+#include <stdbool.h>
+#include <stdlib.h>
 
-typedef struct params {
-    double s, x, y;
-} params;
+enum {
+    pixelStep = 2,
+    maximumIterations = 128,
+    windowSize = 640,
+};
 
-void *newFractalState() {
-    srand(time(0));
-    params *p = malloc(sizeof(params));
-    *p = (params){2.0, -3.0E-3 * ((rand()) % 1000 - 5.0E2) - 1.5, -1.0};
-    return (void *)p;
+typedef struct explorerState {
+    fractalView view;
+    bool needsRender;
+} explorerState;
+
+static Uint32 palette(int iteration) {
+    if (iteration >= maximumIterations)
+        return 0x07111FFF;
+    Uint8 red = (Uint8)((iteration * 9) % 256);
+    Uint8 green = (Uint8)((iteration * 5 + 40) % 256);
+    Uint8 blue = (Uint8)((iteration * 13 + 90) % 256);
+    return ((Uint32)red << 24) | ((Uint32)green << 16) | ((Uint32)blue << 8) | 0xFFU;
 }
 
-void freeFractalState(void *data) {
-    if (data)
-        free(data);
-}
-
-int calculateMandelbrot(const int accuracy, const int x, const int y, const int w, const int h,
-                        const params *p) {
-    int i;
-    double a[4] = {0.0};
-    for (i = 0; (i < accuracy) && ((a[2] + a[3]) < accuracy / 4); i++) {
-        a[0] = 2.0 * a[0] * a[1] + y * p->s / h + p->y;
-        a[1] = a[2] - a[3] + x * p->s / w + p->x;
-        a[2] = a[1] * a[1];
-        a[3] = a[0] * a[0];
-    }
-    return i;
-}
-
-bool navigateMandelbrot(display *d, void *data, SDL_Keycode pressedKey) {
-
-    params *p = (params *)data;
-
-    if ((d == NULL) || (p == NULL))
-        return true;
-    int w = getWidth(d), h = getHeight(d), tx = w / 4, ty = h / 4;
-    params c = (params){DBL_MAX, 0.0, 0.0};
-
-    for (int y = 0; y < h; y += STEPS) {
-        bool last = false;
-        for (int x = 0; x < w; x += STEPS) {
-            int i = calculateMandelbrot(ACC, x, y, w, h, p);
-            if (i == ACC) {
-                if (!last) {
-                    int target = (x - tx) * (x - tx) + (y - ty) * (y - ty);
-                    if (target < c.s)
-                        c = (params){target, x - tx, y - ty};
-                }
-                colour(d, 0xFF);
-                last = true;
-            } else {
-                colour(d, 0xFFFF * (1 + 16 * (i % 16)));
-                last = false;
-            }
-            block(d, x, y, STEPS, STEPS);
+static void drawFractal(display *display, const fractalView *view) {
+    int width = getWidth(display);
+    int height = getHeight(display);
+    for (int y = 0; y < height; y += pixelStep) {
+        for (int x = 0; x < width; x += pixelStep) {
+            int iteration = mandelbrotIterations(view, x, y, width, height, maximumIterations);
+            colour(display, palette(iteration));
+            block(display, x, y, pixelStep, pixelStep);
         }
     }
-    show(d);
-    if (p->s < 1.0E-6)
-        p->s = 1.0E-3;
-    double scale = p->s / ZOOM;
-    if (pressedKey == SDLK_x)
-        scale = p->s / (ZOOM / 1.15);
-    if (pressedKey == SDLK_z)
-        scale = p->s / (ZOOM * 1.15);
-    double nextX = p->x + p->s * c.x / w;
-    double nextY = p->y + p->s * c.y / h;
-    if (pressedKey == SDLK_RIGHT)
-        nextX += p->s / 20.0;
-    if (pressedKey == SDLK_LEFT)
-        nextX -= p->s / 20.0;
-    if (pressedKey == SDLK_DOWN)
-        nextY += p->s / 20.0;
-    if (pressedKey == SDLK_UP)
-        nextY -= p->s / 20.0;
-    *p = (params){scale, nextX, nextY};
-    return pressedKey == SDLK_ESCAPE;
+    show(display);
 }
 
-int main() {
-    display *d = newDisplay("Mandelbrot Flight", 256, 256);
-    if (d == NULL)
-        return 1;
-    void *data = newFractalState();
-    run(d, data, navigateMandelbrot);
-    freeFractalState(data);
-    freeDisplay(d);
-    return 0;
+static bool handleInput(explorerState *state, SDL_Keycode key) {
+    bool changed = false;
+    switch (key) {
+    case SDLK_z:
+        changed = zoomFractal(&state->view, 0.75);
+        break;
+    case SDLK_x:
+        changed = zoomFractal(&state->view, 1.0 / 0.75);
+        break;
+    case SDLK_LEFT:
+        changed = panFractal(&state->view, -0.15, 0.0);
+        break;
+    case SDLK_RIGHT:
+        changed = panFractal(&state->view, 0.15, 0.0);
+        break;
+    case SDLK_UP:
+        changed = panFractal(&state->view, 0.0, -0.15);
+        break;
+    case SDLK_DOWN:
+        changed = panFractal(&state->view, 0.0, 0.15);
+        break;
+    default:
+        break;
+    }
+    state->needsRender = state->needsRender || changed;
+    return key == SDLK_ESCAPE;
+}
+
+static bool navigateMandelbrot(display *display, void *data, SDL_Keycode key) {
+    explorerState *state = data;
+    if (state == NULL)
+        return true;
+    bool quit = handleInput(state, key);
+    if (state->needsRender) {
+        drawFractal(display, &state->view);
+        state->needsRender = false;
+    }
+    return quit;
+}
+
+int main(void) {
+    display *display = newDisplay("Emerald Fractal Explorer", windowSize, windowSize);
+    if (display == NULL)
+        return EXIT_FAILURE;
+    explorerState state = {defaultFractalView(), true};
+    run(display, &state, navigateMandelbrot);
+    freeDisplay(display);
+    return EXIT_SUCCESS;
 }
